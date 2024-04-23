@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import Form from "./form";
+import Form from "./formSignUp";
 import { redirect } from "next/navigation";
 
 export default async function RegisterPage() {

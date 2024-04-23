@@ -1,4 +1,5 @@
-'use client'; import { FormEvent, useState } from "react";
+'use client';
+import { FormEvent, useState } from "react";
 
 export default function Form() {
     const [validEmail, setValidEmail] = useState(true);
@@ -27,7 +28,10 @@ export default function Form() {
         // Password validation
         if (password.length < 3) {
             setValidPassword(false);
+        } else {
+            setValidPassword(true); // Clear the password validation error if password length is valid
         }
+
 
         // Check if passwords match
         if (password !== repeatPassword) {
@@ -66,6 +70,10 @@ export default function Form() {
 
     // Function to handle input change
     const handleInputChange = () => {
+        // Reset the email validation error when any input changes
+        setValidEmail(true);
+        // Reset the full name validation error when any input changes
+        setValidFullName(true);
         if (formSubmitted) {
             setFormSubmitted(false);
         }
@@ -128,9 +136,7 @@ export default function Form() {
                 <p className="text-red-500">Passwords do not match.</p>
             )}
 
-            {emailInUseError && (
-                <p className="text-red-500">{emailInUseError}</p>
-            )}
+
 
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                 Register

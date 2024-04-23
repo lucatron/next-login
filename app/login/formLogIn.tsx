@@ -7,13 +7,14 @@ import { FormEvent, useState } from "react";
 
 export default function FormLogIn() {
     const router = useRouter();
+    const [formSubmitted, setFormSubmitted] = useState(false);
     const [validEmail, setValidEmail] = useState(true);
     const [validPassword, setValidPassword] = useState(true);
-    const [formSubmitted, setFormSubmitted] = useState(false); // Track if the form is submitted
+    const [loginError, setLoginError] = useState('');
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setFormSubmitted(true); // Set formSubmitted to true when the form is submitted
+        setFormSubmitted(true);
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
@@ -26,41 +27,53 @@ export default function FormLogIn() {
         }
 
         // Password validation
-        if (!password) {
+        if (password.length < 8) {
             setValidPassword(false);
         }
 
-        // Proceed with form submission if all fields are valid
-        if (emailRegex.test(email) && password) {
-            const response = await signIn('credentials', {
+        if (emailRegex.test(email) && password.length >= 8) {
+            const response = await signIn("credentials", {
                 email,
                 password,
                 redirect: false,
             });
 
             console.log("RESPONSE", { response });
-
             if (!response?.error) {
-                router.push('/');
+                router.push("/");
                 router.refresh();
+            } else {
+                if (response.error === 'Incorrect email') {
+                    setLoginError('Email is incorrect. Please try again.');
+                } else if (response.error === 'Incorrect password') {
+                    setLoginError('Password is incorrect. Please try again.');
+                } else {
+                    setLoginError('Login failed. Please try again.');
+                }
             }
         }
     };
 
-    // Function to handle input change
     const handleInputChange = () => {
         if (formSubmitted) {
+            setValidEmail(true);
+            setValidPassword(true);
+            setLoginError('');
             setFormSubmitted(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 mx-auto max-w-md mt-10">
+        <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-2 mx-auto max-w-md mt-10"
+        >
             <label htmlFor="email">Email:</label>
             <input
                 id="email"
                 name="email"
-                className={`border ${validEmail ? 'border-black' : 'border-red-500'} text-black`}
+                className={`border ${validEmail ? "border-black" : "border-red-500"
+                    } text-black`}
                 type="email"
                 placeholder="Enter your email"
                 onChange={handleInputChange}
@@ -73,16 +86,24 @@ export default function FormLogIn() {
             <input
                 id="password"
                 name="password"
-                className={`border ${validPassword ? 'border-black' : 'border-red-500'} text-black`}
+                className={`border ${validPassword ? "border-black" : "border-red-500"
+                    } text-black`}
                 type="password"
                 placeholder="Enter your password"
                 onChange={handleInputChange}
             />
             {!validPassword && formSubmitted && (
-                <p className="text-red-500">Please enter your password.</p>
+                <p className="text-red-500">Password must be at least 8 characters long.</p>
             )}
 
-            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            {loginError && (
+                <p className="text-red-500">{loginError}</p>
+            )}
+
+            <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
                 Log In
             </button>
         </form>

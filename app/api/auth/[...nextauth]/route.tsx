@@ -19,27 +19,35 @@ const handler = NextAuth({
                 password: {}
             },
             async authorize(credentials, req) {
-                //also add validation
-                //add constrain for unique email
-
-                const response = await sql`
-                SELECT *FROM users WHERE email=${credentials?.email}`;
-                const user = response.rows[0];
-
-                const passwordCorrect = await compare(
-                    credentials?.password || "",
-                    user.password);
-                console.log({ passwordCorrect });
-
-
-                if (passwordCorrect) {
-                    return {
-
-                        id: user.id,
-                        email: user.emial,
+                try {
+                    // Validate email and password
+                    if (!credentials?.email || !credentials?.password) {
+                        throw new Error("Please provide both email and password.");
                     }
+
+                    // Check if the email exists
+                    const response = await sql`SELECT * FROM users WHERE email = ${credentials?.email}`;
+                    const user = response.rows[0];
+
+                    if (!user) {
+                        throw new Error("User with this email does not exist.");
+                    }
+
+                    // Compare passwords
+                    const passwordCorrect = await compare(credentials?.password || "", user.password);
+                    if (!passwordCorrect) {
+                        throw new Error("Incorrect password.");
+                    }
+
+                    return {
+                        id: user.id,
+                        email: user.email,
+                    };
+                } catch (error: any) {
+                    // Handle any errors and return null
+                    console.error("Authentication error:", error.message);
+                    return null;
                 }
-                return null;
             },
         }),
     ],
